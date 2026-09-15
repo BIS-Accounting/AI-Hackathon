@@ -10,8 +10,11 @@
 //   3. resolve LINEAR_API_KEY (from --key, env, or interactive prompt) and write ~/.switchboard/env (chmod 600 where supported)
 //   4. register the three Claude Code hooks by MERGING into ~/.claude/settings.json non-destructively
 //      (backup to settings.json.swb-bak first; append groups; never clobber existing hooks)
-//   5. put `swb` on PATH via a shim (~/.local/bin/swb on unix, %USERPROFILE%\.local\bin\swb.cmd on Windows)
-//   6. run `swb doctor` and print its output
+//   5. register the Business Central MCP servers (mcp/business-central.json) user-wide by MERGING
+//      into ~/.claude.json `mcpServers` — the same shape `claude mcp add-json -s user` writes
+//      (backup to .claude.json.swb-bak first; never overwrite a name that is already there)
+//   6. put `swb` on PATH via a shim (~/.local/bin/swb on unix, %USERPROFILE%\.local\bin\swb.cmd on Windows)
+//   7. run `swb doctor` and print its output
 //
 // Safe to run twice: re-running never duplicates hooks, never overwrites an existing key,
 // and never re-clobbers the backup once one exists.
@@ -359,6 +362,76 @@ function mergeSettings(claudeDir) {
   return { settingsPath, changed };
 }
 
+// ── Business Central MCP servers ───────────────────────────────────────────────
+// The kit ships the accounting team's Business Central MCP servers in
+// mcp/business-central.json (one per company, all on the Test-Backup environment).
+// They are registered USER-wide — the accountant's Claude sees Business Central in
+// every folder (practice repo, team repo), not just this one. We merge straight into
+// ~/.claude.json because that is exactly what `claude mcp add-json <name> <json> -s user`
+// writes, and doing it in-process sidesteps quoting JSON through cmd.exe on Windows.
+// The OAuth sign-in itself is a human step inside Claude Code (/mcp) — the installer
+// can only register and point at it.
+const MCP_SOURCE = path.join(REPO_ROOT, 'mcp', 'business-central.json');
+
+function mcpRegistrations() {
+  const raw = JSON.parse(fs.readFileSync(MCP_SOURCE, 'utf8'));
+  const servers = (raw && raw.mcpServers) || {};
+  return Object.keys(servers).map((name) => ({ name, config: servers[name] }));
+}
+
+function printMcpManualRecipe(regs) {
+  info('register them yourself, one line each, in any terminal:');
+  for (const r of regs) {
+    console.log(`    claude mcp add-json ${r.name} '${JSON.stringify(r.config)}' -s user`);
+  }
+}
+
+// Merge the registrations into ~/.claude.json non-destructively. A name that is
+// already present is left exactly as-is (a human may have edited it). Returns the
+// names added this run.
+function mergeMcpServers(home) {
+  const regs = mcpRegistrations();
+  const cfgPath = path.join(home, '.claude.json');
+  const backupPath = path.join(home, '.claude.json.swb-bak');
+
+  let cfg = {};
+  let raw = '';
+  if (fs.existsSync(cfgPath)) {
+    raw = fs.readFileSync(cfgPath, 'utf8');
+    try {
+      cfg = raw.trim() ? JSON.parse(raw) : {};
+    } catch (e) {
+      warn(`~/.claude.json is not valid JSON. Left it untouched (Claude Code owns that file).`);
+      printMcpManualRecipe(regs);
+      return { cfgPath, added: [], skipped: true };
+    }
+  }
+  if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) {
+    warn(`~/.claude.json has an unexpected shape. Left it untouched.`);
+    printMcpManualRecipe(regs);
+    return { cfgPath, added: [], skipped: true };
+  }
+
+  const existing = (cfg.mcpServers && typeof cfg.mcpServers === 'object') ? cfg.mcpServers : {};
+  const added = regs.filter((r) => !Object.prototype.hasOwnProperty.call(existing, r.name)).map((r) => r.name);
+  if (added.length === 0) {
+    ok(`Business Central MCP servers already registered (${regs.map((r) => r.name).join(', ')})`);
+    return { cfgPath, added };
+  }
+
+  if (fs.existsSync(cfgPath) && !fs.existsSync(backupPath)) {
+    fs.writeFileSync(backupPath, raw);
+    chmod600(backupPath); // the original is owner-only (it holds API keys in server URLs) — so is the copy
+    info(`backed up .claude.json → ${path.basename(backupPath)}`);
+  }
+  const mcpServers = { ...existing };
+  for (const r of regs) if (added.includes(r.name)) mcpServers[r.name] = r.config;
+  const next = { ...cfg, mcpServers };
+  fs.writeFileSync(cfgPath, JSON.stringify(next, null, 2) + '\n');
+  ok(`Business Central MCP registered user-wide: ${added.join(', ')}`);
+  return { cfgPath, added };
+}
+
 // ── PATH shim ───────────────────────────────────────────────────────────────
 function installShim(home) {
   const binDir = path.join(home, '.local', 'bin');
@@ -552,29 +625,32 @@ async function main() {
   // Opens immediately so the human reads WHAT this is while the installer works.
   openInBrowser(args, 'FLOOR-TOUR.html', 'floor tour (read this while I work)');
 
-  step('1/7  Checking Node');
+  step('1/8  Checking Node');
   verifyNode();
 
   const home = resolveHome();
   const swbDir = path.join(home, '.switchboard');
   const claudeDir = path.join(home, '.claude');
 
-  step('2/7  Creating ~/.switchboard/');
+  step('2/8  Creating ~/.switchboard/');
   ensureTree(swbDir);
 
-  step('3/7  Configuring Linear API key');
+  step('3/8  Configuring Linear API key');
   await writeEnv(swbDir, args);
 
-  step('4/7  Registering Claude Code hooks');
+  step('4/8  Registering Claude Code hooks');
   mergeSettings(claudeDir);
 
-  step('5/7  Installing swb shim');
+  step('5/8  Registering Business Central MCP');
+  const mcp = mergeMcpServers(home);
+
+  step('6/8  Installing swb shim');
   installShim(home);
 
-  step('6/7  Installing /swb-tour command');
+  step('7/8  Installing /swb-tour command');
   installTourCommand(claudeDir);
 
-  // step 7 = doctor
+  // step 8 = doctor
   runDoctor(swbDir);
 
   // The kit's document set — say what each is, so nothing sits in the folder
@@ -586,7 +662,15 @@ async function main() {
   info(`PLAYBOOK.html        full reference for everything above`);
   info(`(all in ${REPO_ROOT})`);
 
-  console.log(`\n${color('32', 'Done.')} switchboard installed. Next: open a Claude Code session and type  /swb-tour`);
+  step('Business Central — one-time sign-in (you do this part)');
+  info(`the ${mcpRegistrations().length} Business Central servers are registered, but Claude cannot read your books until YOU sign in:`);
+  console.log('    1. open a NEW Claude Code session (anywhere) and type  /mcp');
+  console.log('    2. pick business-central-bis-inc → Authenticate → sign in with your BIS Microsoft account in the browser');
+  console.log('    3. repeat for business-central-alberta and business-central-usa');
+  console.log('    4. then ask Claude: "list the Business Central companies you can see" — a real answer means you are in');
+  if (mcp.skipped) warn('registration was skipped above — run the manual claude mcp add-json lines first, then sign in');
+
+  console.log(`\n${color('32', 'Done.')} switchboard installed. Next: open a Claude Code session, type  /mcp  to sign in to Business Central, then  /swb-tour`);
 }
 
 // Only run the installer when invoked directly (node install.js), never on require().
@@ -608,4 +692,6 @@ module.exports = {
   mergeSettings,
   hookRegistrations,
   groupHasCommand,
+  mcpRegistrations,
+  mergeMcpServers,
 };

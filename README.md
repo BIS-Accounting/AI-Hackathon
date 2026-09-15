@@ -11,7 +11,9 @@
    git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git && cd switchboard-accounting && node install.js
    ```
    The Floor Tour opens in your browser — read it while the installer works. It will
-   ask for your personal Linear API key and shows you exactly where to get one.
+   ask for your personal Linear API key and shows you exactly where to get one, and
+   it wires up **Business Central** for your Claude (you sign in once, with your BIS
+   Microsoft account, when the installer tells you to type `/mcp`).
    *Prefer being guided? After cloning, just open Claude Code inside the folder and
    say "set me up" — it reads this repo's CLAUDE.md and walks you through everything.*
 3. **Open Claude Code and type `/swb-tour`.** Your own Claude walks you through the
@@ -49,8 +51,11 @@ git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git 
 
 The installer verifies Node, creates `~/.switchboard/`, saves your
 `LINEAR_API_KEY`, merges the three hooks into `~/.claude/settings.json` (backing
-your original up first), drops a `swb` shim on your `PATH`, and runs
-`swb doctor`. It is safe to run twice. Full details, PowerShell commands, and
+your original up first), registers the three Business Central MCP servers
+user-wide (from `mcp/business-central.json`, into `~/.claude.json`), drops a `swb`
+shim on your `PATH`, and runs `swb doctor`. Business Central needs a one-time
+sign-in afterwards: type `/mcp` in Claude Code and authenticate each server with
+your BIS Microsoft account. It is safe to run twice. Full details, PowerShell commands, and
 uninstall steps are in **[INSTALL.md](./INSTALL.md)**.
 
 ## Architecture (in 10 lines)
@@ -70,6 +75,7 @@ uninstall steps are in **[INSTALL.md](./INSTALL.md)**.
 swb.js                  # the entire CLI — one file, zero deps
 hooks/                  # userpromptsubmit · posttooluse · pretooluse
 install.js  INSTALL.md  # installer + install/uninstall docs
+mcp/                    # business-central.json — the 3 Business Central MCP servers the installer registers
 PLAYBOOK.html           # the participant playbook (rules, roles, walkthrough)
 AGENTS-template.md      # drop-in AGENTS.md protocol for team repos
 CONTRACTS.md            # the build contract — interfaces are law

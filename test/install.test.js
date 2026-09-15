@@ -322,3 +322,83 @@ test('installer drops the /swb-tour command and stays idempotent', () => {
     assert.equal(fs.readFileSync(tourPath, 'utf8'), first, 'tour file identical after re-run');
   });
 });
+
+// ── Business Central MCP registration ──────────────────────────────────────────
+// The installer registers the kit's Business Central MCP servers user-wide by merging
+// them into ~/.claude.json `mcpServers` — the exact shape `claude mcp add-json -s user`
+// writes — non-destructively, with a one-time backup, idempotent.
+
+function readClaudeJson(home) {
+  return JSON.parse(fs.readFileSync(path.join(home, '.claude.json'), 'utf8'));
+}
+
+test('mcpRegistrations lists the three Business Central servers from mcp/business-central.json', () => {
+  const regs = installer.mcpRegistrations();
+  assert.deepEqual(regs.map((r) => r.name).sort(), [
+    'business-central-alberta', 'business-central-bis-inc', 'business-central-usa',
+  ]);
+  for (const r of regs) {
+    assert.equal(r.config.type, 'http');
+    assert.equal(r.config.url, 'https://mcp.businesscentral.dynamics.com');
+    assert.equal(r.config.headers.EnvironmentName, 'Test-Backup');
+    assert.ok(r.config.oauth && r.config.oauth.clientId, `${r.name} carries the OAuth block`);
+  }
+});
+
+test('installer registers the Business Central servers user-wide in ~/.claude.json, once', () => {
+  withTempHome((home) => {
+    const res = runInstaller(home);
+    assert.equal(res.status, 0, res.stdout + res.stderr);
+    const cfg = readClaudeJson(home);
+    const names = Object.keys(cfg.mcpServers || {}).sort();
+    assert.deepEqual(names, ['business-central-alberta', 'business-central-bis-inc', 'business-central-usa']);
+    assert.equal(cfg.mcpServers['business-central-bis-inc'].headers.Company, 'BIS Inc.');
+    assert.match(res.stdout, /Business Central/i);
+    assert.match(res.stdout, /\/mcp/, 'tells the human to authenticate via /mcp');
+
+    const before = fs.readFileSync(path.join(home, '.claude.json'), 'utf8');
+    const res2 = runInstaller(home);
+    assert.equal(res2.status, 0, res2.stdout + res2.stderr);
+    assert.equal(fs.readFileSync(path.join(home, '.claude.json'), 'utf8'), before, 'second run changes nothing');
+    assert.match(res2.stdout, /already registered/i);
+  });
+});
+
+test('installer preserves existing ~/.claude.json content and backs it up once', () => {
+  withTempHome((home) => {
+    const existing = {
+      numStartups: 7,
+      mcpServers: { exa: { type: 'http', url: 'https://mcp.exa.ai/mcp' } },
+      projects: { '/x': { allowedTools: [] } },
+    };
+    fs.writeFileSync(path.join(home, '.claude.json'), JSON.stringify(existing));
+    const res = runInstaller(home);
+    assert.equal(res.status, 0, res.stdout + res.stderr);
+    const cfg = readClaudeJson(home);
+    assert.equal(cfg.numStartups, 7);
+    assert.deepEqual(cfg.projects, existing.projects);
+    assert.deepEqual(cfg.mcpServers.exa, existing.mcpServers.exa, 'pre-existing server untouched');
+    assert.ok(cfg.mcpServers['business-central-usa']);
+    const bak = path.join(home, '.claude.json.swb-bak');
+    assert.deepEqual(JSON.parse(fs.readFileSync(bak, 'utf8')), existing, 'backup is the pristine file');
+    if (process.platform !== 'win32') assert.equal(fs.statSync(bak).mode & 0o777, 0o600, 'backup is owner-only');
+
+    // A hand-edited server keeps the human's edit on re-run (we never overwrite a present name).
+    cfg.mcpServers['business-central-usa'].headers.EnvironmentName = 'Production';
+    fs.writeFileSync(path.join(home, '.claude.json'), JSON.stringify(cfg));
+    runInstaller(home);
+    assert.equal(readClaudeJson(home).mcpServers['business-central-usa'].headers.EnvironmentName, 'Production');
+    assert.deepEqual(JSON.parse(fs.readFileSync(bak, 'utf8')), existing, 'backup never re-clobbered');
+  });
+});
+
+test('installer leaves an unparseable ~/.claude.json untouched and prints the manual recipe', () => {
+  withTempHome((home) => {
+    const p = path.join(home, '.claude.json');
+    fs.writeFileSync(p, '{ not json');
+    const res = runInstaller(home);
+    assert.equal(res.status, 0, res.stdout + res.stderr);
+    assert.equal(fs.readFileSync(p, 'utf8'), '{ not json');
+    assert.match(res.stdout, /claude mcp add-json/, 'manual recipe printed');
+  });
+});

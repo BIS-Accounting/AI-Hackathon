@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "business-central-bis-inc": {
+      "type": "http",
+      "url": "https://mcp.businesscentral.dynamics.com",
+      "headers": {
+        "TenantId": "53566506-d015-4891-9441-f8b130ac7c4a",
+        "EnvironmentName": "Test-Backup",
+        "Company": "BIS Inc.",
+        "ConfigurationName": "Claude MCP Reporting"
+      },
+      "oauth": {
+        "clientId": "b494e157-ec31-4d58-9dfb-d216d7009333",
+        "callbackPort": 33418,
+        "scopes": "https://api.businesscentral.dynamics.com/user_impersonation",
+        "authServerMetadataUrl": "https://login.microsoftonline.com/53566506-d015-4891-9441-f8b130ac7c4a/v2.0/.well-known/openid-configuration"
+      }
+    },
+    "business-central-alberta": {
+      "type": "http",
+      "url": "https://mcp.businesscentral.dynamics.com",
+      "headers": {
+        "TenantId": "53566506-d015-4891-9441-f8b130ac7c4a",
+        "EnvironmentName": "Test-Backup",
+        "Company": "2136254 Alberta Ltd.",
+        "ConfigurationName": "Claude MCP Reporting"
+      },
+      "oauth": {
+        "clientId": "b494e157-ec31-4d58-9dfb-d216d7009333",
+        "callbackPort": 33418,
+        "scopes": "https://api.businesscentral.dynamics.com/user_impersonation",
+        "authServerMetadataUrl": "https://login.microsoftonline.com/53566506-d015-4891-9441-f8b130ac7c4a/v2.0/.well-known/openid-configuration"
+      }
+    },
+    "business-central-usa": {
+      "type": "http",
+      "url": "https://mcp.businesscentral.dynamics.com",
+      "headers": {
+        "TenantId": "53566506-d015-4891-9441-f8b130ac7c4a",
+        "EnvironmentName": "Test-Backup",
+        "Company": "BIS Safety Software USA Inc.",
+        "ConfigurationName": "Claude MCP Reporting"
+      },
+      "oauth": {
+        "clientId": "b494e157-ec31-4d58-9dfb-d216d7009333",
+        "callbackPort": 33418,
+        "scopes": "https://api.businesscentral.dynamics.com/user_impersonation",
+        "authServerMetadataUrl": "https://login.microsoftonline.com/53566506-d015-4891-9441-f8b130ac7c4a/v2.0/.well-known/openid-configuration"
+      }
+    }
+  }
+}

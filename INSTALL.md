@@ -41,18 +41,29 @@ git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git;
    protection, @you routing, and attribution (the board would show one person
    doing everything).
 
-The installer walks seven steps and is **safe to run twice** (it never duplicates
+The installer walks eight steps and is **safe to run twice** (it never duplicates
 hooks or overwrites your settings):
 
 1. verifies Node ≥ 18
 2. creates the `~/.switchboard/` state tree
 3. asks for (or accepts) your `LINEAR_API_KEY` and writes `~/.switchboard/env` (mode `600` on macOS/Linux)
 4. registers the three Claude Code hooks by **merging** into `~/.claude/settings.json` (your existing hooks are backed up to `settings.json.swb-bak` and left untouched)
-5. drops a `swb` shim on your `PATH`
-6. installs the `/swb-tour` command into `~/.claude/commands/`
-7. runs `swb doctor` and prints the result
+5. registers the three **Business Central** MCP servers (`mcp/business-central.json`: BIS Inc., 2136254 Alberta Ltd., BIS Safety Software USA Inc. — Test-Backup environment) user-wide by **merging** into `~/.claude.json` (backed up to `.claude.json.swb-bak`; a server name already present is never overwritten)
+6. drops a `swb` shim on your `PATH`
+7. installs the `/swb-tour` command into `~/.claude/commands/`
+8. runs `swb doctor` and prints the result
 
 **First thing it does** (before step 1): opens `FLOOR-TOUR.html` in your browser — the click-through of the whole system. Read it while the installer works (skip with `--no-open`). The reference `PLAYBOOK.html` path is printed at the end.
+
+### After installing: sign in to Business Central (once)
+
+The installer registers the servers; only you can sign in. Open a **new** Claude
+Code session, type `/mcp`, pick `business-central-bis-inc` → **Authenticate**, and
+sign in with your BIS Microsoft account in the browser tab that opens. Repeat for
+`business-central-alberta` and `business-central-usa`. Prove it: ask Claude
+*"list the Business Central companies you can see"* — a real answer means you're in.
+Tokens stay on your machine. If the installer could not touch `~/.claude.json` it
+prints three `claude mcp add-json … -s user` lines — run those first.
 
 ### After installing: take the tour
 
@@ -227,7 +238,16 @@ rm ~/.local/bin/swb
 Remove-Item "$env:USERPROFILE\.local\bin\swb.cmd"
 ```
 
-**3. Remove the state and config.** This deletes your saved key, cache, and
+**3. Remove the Business Central MCP servers** (they live in `~/.claude.json`,
+user scope — Claude Code's own CLI removes them cleanly; sign-in tokens go with them):
+
+```sh
+claude mcp remove business-central-bis-inc -s user
+claude mcp remove business-central-alberta -s user
+claude mcp remove business-central-usa -s user
+```
+
+**4. Remove the state and config.** This deletes your saved key, cache, and
 event log — do it last.
 
 ```sh
@@ -240,7 +260,7 @@ rm -rf ~/.switchboard
 Remove-Item -Recurse -Force "$env:USERPROFILE\.switchboard"
 ```
 
-**4. (Optional) Remove the clone and any leftover ticket side folders (worktrees).**
+**5. (Optional) Remove the clone and any leftover ticket side folders (worktrees).**
 
 ```sh
 rm -rf /path/to/switchboard ../switchboard-wt

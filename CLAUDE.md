@@ -42,18 +42,36 @@ and NOWHERE else — never into files, tickets, comments, or your replies.
    node install.js --key <their key>
    ```
    The **Floor Tour** opens in their browser — tell them: "read that while I
-   finish; it explains the whole system." The installer registers hooks, puts
+   finish; it explains the whole system." The installer registers hooks, registers
+   the three **Business Central** MCP servers user-wide (BIS Inc., 2136254 Alberta
+   Ltd., BIS Safety Software USA Inc. — all on the Test-Backup environment), puts
    `swb` on their PATH, installs the `/swb-tour` command, and runs `swb doctor`.
 3. **Doctor must be all green before you call this done.** Red? Fix it yourself
    with them watching — that IS the task. Re-run `node install.js --key ...` is
    safe (idempotent).
 
+**Step 3b — Business Central sign-in (they click, you verify).**
+The installer registered the servers, but Claude cannot read the books until the
+human signs in — this is the ONE step you cannot run for them. MCP servers load at
+session start, so it happens in the fresh session of Step 4. Tell them exactly:
+
+> In the new session, type `/mcp`. Pick `business-central-bis-inc` → Authenticate.
+> A browser tab opens — sign in with your BIS Microsoft account (the one you use
+> for Business Central). Come back to the terminal; it should say connected.
+> Repeat for `business-central-alberta` and `business-central-usa`.
+
+Then PROVE it in that session before anything else: ask Claude
+"list the Business Central companies you can see". A real answer (company names
+from Business Central, not an error) means they are in. "Needs authentication" or
+an auth error → do the `/mcp` step again; still failing → they message Turni with
+the exact error text. Sign-in tokens are per person, on their machine only.
+
 **Step 4 — Hand off to the tour.**
-Hooks and the tour command load at session start, so: tell them to open a
-**new terminal**, start a **fresh Claude Code session FROM INSIDE THIS
+Hooks, the tour command, and the MCP servers load at session start, so: tell them
+to open a **new terminal**, start a **fresh Claude Code session FROM INSIDE THIS
 switchboard-accounting folder** (board reports are scoped to swb repos —
-starting the tour session here guarantees they see everything), and type
-`/swb-tour`. That guided tour takes over — hands-on practice ticket, then a
+starting the tour session here guarantees they see everything), do the
+Business Central sign-in from Step 3b, and type `/swb-tour`. That guided tour takes over — hands-on practice ticket, then a
 two-person round with a buddy. Setup is not complete until the tour's Part 2 is
 done with a teammate. Say that sentence to them.
 
@@ -71,13 +89,17 @@ AGENTS-TEMPLATE.html, the agent contract those answers fill in.
   silently work around it. If the docs contradict what actually happens on this
   machine, say so explicitly — that mismatch is feedback the organizers want.
 - **You do the work; they do the tour.** You run every setup command yourself.
-  The one thing they type is `/swb-tour` in the fresh session — that experience
+  The two things they type are `/mcp` (Business Central sign-in — a browser
+  login only they can do) and `/swb-tour` in the fresh session — that experience
   is theirs.
 - Anything confusing → they report it to Turni.
 
 ## Already installed? (doctor passes)
 
-Then you're a normal working session in this repo. The protocol your agents
+Then you're a normal working session in this repo. Business Central is reachable
+through the three `business-central-*` MCP servers (read-only reporting
+configuration, Test-Backup environment) — if a call says "needs authentication",
+the human types `/mcp` and signs in again. The protocol your agents
 follow lives in AGENTS-template.md; the human-readable docs are FLOOR-TOUR.html
 (how it works), PLANNING-DAY.html (planning questions), PLAYBOOK.html
 (reference). All board writes go through `swb` verbs — see the crib sheet in
