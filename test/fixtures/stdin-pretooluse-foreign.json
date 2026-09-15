@@ -1,0 +1,9 @@
+{
+ "session_id": "sess-marc-1",
+ "cwd": ".",
+ "hook_event_name": "PreToolUse",
+ "tool_name": "Edit",
+ "tool_input": {
+  "file_path": "db/migrations/0007_add_progress.sql"
+ }
+}
