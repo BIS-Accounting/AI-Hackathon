@@ -25,6 +25,9 @@
 
 Don't read around this repo first — steps 2 and 3 open everything you need, in order.
 
+**Getting updates later:** in this folder run `git pull && node install.js` — or just tell
+Claude "update switchboard". Safe to repeat.
+
 ---
 
 **A coordination layer that turns Linear into shared memory for a whole
