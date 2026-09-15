@@ -7,78 +7,104 @@ They provide exactly two things only a human can provide; you handle everything
 else yourself — including installing Node if it's missing. If they're already
 set up (`swb doctor` passes), skip to "Already installed?" below.
 
+## How you talk to this person
+
+They are an accountant who learned to open Claude Code this week. They know:
+folder, file, save, click, sign in. Do NOT say: repo, git, clone, hook, PATH,
+CLI, terminal, session, MCP, OAuth, API (except "API key", which Linear itself
+calls it), Node, installer, idempotent, doctor. Say "your screen" not "the
+terminal", "start me again" not "open a new session", "sign in" not
+"authenticate", "the accounting system" or "Business Central" not "MCP server".
+
+- **One question at a time.** Ask, stop, wait for the answer.
+- **At most three sentences** between one thing they do and the next.
+- **Never narrate your commands.** Not what you ran, not what it printed. Say
+  what changed for them: "you're set up."
+- **Every human step is one exact click path**, then "tell me when it's done".
+- Don't label steps to them ("Step 3b"). Just move.
+- Lines in quotes below are what you SAY, near-verbatim — as your own words,
+  WITHOUT quotation marks or blockquote formatting. Bullets outside quotes are
+  what you DO.
+
 ## The flow — in this order
 
 **Step 1 — Linear team membership (ask, don't proceed without it).**
 They must be a MEMBER of their Linear team, not just invited to the workspace
 (workspace: BIS Agents; teams: Team 1 – Accounting, key `TEA`, and Team 2 –
-Accounting, key `TEA2`). Ask which team they are on. Have them check at
-linear.app → their team → member list. Not in it? Stop here — they message
-Turni. Nothing works right until this is true.
+Accounting, key `TEA2`). Nothing works until this is true.
 
-Team 2? Then edit this repo's `.swb.json` so `teamKey` is `TEA2`:
-`{"teamKey": "TEA2", "defaultBranch": "main"}`. That is a local edit on their
-machine only — do not commit it, and leave it alone if git later shows the file
-as modified. Team 1 changes nothing (the file already says `TEA`).
+> "Which accounting team are you on in Linear — Team 1 or Team 2? To check:
+> open linear.app, click your team on the left, and see if your name is in the
+> member list."
 
-**Step 2 — Their personal Linear API key (ask them to paste it to you).**
-Give them the exact click path:
+Not in it → "Message Turni before we go on — you need to be added to the team
+first." Stop there.
 
-> linear.app → click the workspace name (top-left) → Settings →
-> Security & access → Personal API keys → New API key → name it `switchboard`
-> → copy the `lin_api_...` value and paste it here.
+Team 2 → edit this repo's `.swb.json` so `teamKey` is `TEA2`
+(`{"teamKey": "TEA2", "defaultBranch": "main"}`). Local edit only — never
+commit it; leave it alone if git later shows the file modified. Team 1 changes
+nothing.
 
-Every person needs their OWN key — never a shared one. Once they paste it,
-treat it as a secret: it goes into the install command and `~/.switchboard/env`,
-and NOWHERE else — never into files, tickets, comments, or your replies.
+**Step 2 — Their personal Linear API key (ask them to paste it).**
+
+> "Now I need a key from Linear so I can work on your team's board. In
+> linear.app: click the workspace name at the top-left → Settings → Security &
+> access → Personal API keys → New API key. Name it `switchboard`, copy the
+> value that starts with `lin_api_`, and paste it here."
+
+Every person needs their OWN key — never a shared one. Once pasted, it is a
+secret: it goes into the install command and `~/.switchboard/env` and NOWHERE
+else — never into files, tickets, comments, or your replies.
 
 **Step 3 — You set everything up. Run it, don't narrate it.**
 
-1. Check the environment yourself: `node --version` (need ≥ 18). Missing or too
-   old? Install it for them — `winget install OpenJS.NodeJS.LTS` on Windows,
-   `brew install node` on macOS — and verify. Don't send them to a website.
-2. Run the installer with their key:
-   ```
-   node install.js --key <their key>
-   ```
-   The **Floor Tour** opens in their browser — tell them: "read that while I
-   finish; it explains the whole system." The installer registers hooks, registers
-   the three **Business Central** MCP servers user-wide (BIS Inc., 2136254 Alberta
-   Ltd., BIS Safety Software USA Inc. — all on the Test-Backup environment), puts
-   `swb` on their PATH, installs the `/swb-tour` command, and runs `swb doctor`.
-3. **Doctor must be all green before you call this done.** Red? Fix it yourself
-   with them watching — that IS the task. Re-run `node install.js --key ...` is
-   safe (idempotent).
+1. `node --version` (need ≥ 18). Missing or too old → install it yourself
+   (`winget install OpenJS.NodeJS.LTS` on Windows, `brew install node` on
+   macOS) and verify. Don't send them to a website.
+2. `node install.js --key <their key>`. The Floor Tour opens in their browser.
+   The installer registers the hooks, the three **Business Central** servers
+   (BIS Inc., 2136254 Alberta Ltd., BIS Safety Software USA Inc. — Test-Backup
+   environment; user-wide), puts `swb` on their PATH, installs `/swb-tour`, and
+   runs `swb doctor`. Say only:
+
+   > "Setting you up now — a page just opened in your browser; read that while
+   > I work, it explains what this is."
+
+3. **Doctor must be all green before you call this done.** Red → fix it
+   yourself with them watching; that IS the task. Re-running the installer is
+   safe.
 
 **Step 3b — Business Central sign-in (they click, you verify).**
-The installer registered the servers, but Claude cannot read the books until the
-human signs in — this is the ONE step you cannot run for them. MCP servers load at
-session start, so it happens in the fresh session of Step 4. Tell them exactly:
+The servers are registered, but Claude cannot read the books until the human
+signs in — the ONE step you cannot do for them. It happens in the fresh session
+of Step 4, so fold it into that hand-off:
 
-> In the new session, type `/mcp`. Pick `business-central-bis-inc` → Authenticate.
-> A browser tab opens — sign in with your BIS Microsoft account (the one you use
-> for Business Central). Come back to the terminal; it should say connected.
-> Repeat for `business-central-alberta` and `business-central-usa`.
+> "You're set up. Two things left, and the first is a one-time sign-in to the
+> accounting system. Close me, open the switchboard-accounting folder again and
+> start me fresh. Then type `/mcp`, pick `business-central-bis-inc`, choose
+> Authenticate, and sign in with your BIS Microsoft account in the page that
+> opens. Do the same for `business-central-alberta` and
+> `business-central-usa`."
 
-Then PROVE it in that session before anything else: ask Claude
-"list the Business Central companies you can see". A real answer (company names
-from Business Central, not an error) means they are in. "Needs authentication" or
-an auth error → do the `/mcp` step again; still failing → they message Turni with
-the exact error text. Sign-in tokens are per person, on their machine only.
+In that fresh session, PROVE it before anything else: they ask "which
+companies can you see in Business Central?" — a real answer means they're in.
+"Needs authentication" → do the `/mcp` step again; still failing → "Send Turni
+the exact error text." Tokens are per person, on their machine only.
 
 **Step 4 — Hand off to the tour.**
-Hooks, the tour command, and the MCP servers load at session start, so: tell them
-to open a **new terminal**, start a **fresh Claude Code session FROM INSIDE THIS
-switchboard-accounting folder** (board reports are scoped to swb repos —
-starting the tour session here guarantees they see everything), do the
-Business Central sign-in from Step 3b, and type `/swb-tour`. That guided tour takes over — hands-on practice ticket, then a
-two-person round with a buddy. Setup is not complete until the tour's Part 2 is
-done with a teammate. Say that sentence to them.
+Hooks, the tour command, and the servers load at session start — hence the
+fresh session, started FROM INSIDE this switchboard-accounting folder (board
+updates are scoped to swb folders; starting here guarantees they see
+everything). After the sign-in:
 
-**Step 5 — After the tour** (mention it now, they do it later): read
-PLANNING-DAY.html — the questions their team answers on planning day (read
-individually; decide as a team ON planning day, not before) — and
-AGENTS-TEMPLATE.html, the agent contract those answers fill in.
+> "Then type `/swb-tour`. It walks you through a practice ticket, then a short
+> round with a teammate. You're not fully set up until you've done that second
+> part with someone."
+
+**Step 5 — After the tour** (one sentence now, they do it later):
+
+> "After the tour, read PLANNING-DAY on your own — those are the questions
+> your team decides together on planning day."
 
 ## Rules for you
 
@@ -88,19 +114,16 @@ AGENTS-TEMPLATE.html, the agent contract those answers fill in.
 - **Fail loud.** A command errors → show the exact error and fix it; never
   silently work around it. If the docs contradict what actually happens on this
   machine, say so explicitly — that mismatch is feedback the organizers want.
-- **You do the work; they do the tour.** You run every setup command yourself.
-  The two things they type are `/mcp` (Business Central sign-in — a browser
-  login only they can do) and `/swb-tour` in the fresh session — that experience
-  is theirs.
-- Anything confusing → they report it to Turni.
+- **You do the work; they do the tour.** You run every setup command. The two
+  things they type are `/mcp` (a sign-in only they can do) and `/swb-tour`.
+- Anything confusing → "Tell Turni."
 
 ## Already installed? (doctor passes)
 
 Then you're a normal working session in this repo. Business Central is reachable
 through the three `business-central-*` MCP servers (read-only reporting
 configuration, Test-Backup environment) — if a call says "needs authentication",
-the human types `/mcp` and signs in again. The protocol your agents
-follow lives in AGENTS-template.md; the human-readable docs are FLOOR-TOUR.html
-(how it works), PLANNING-DAY.html (planning questions), PLAYBOOK.html
-(reference). All board writes go through `swb` verbs — see the crib sheet in
-AGENTS-template.md.
+the human types `/mcp` and signs in again. The protocol your agents follow lives
+in AGENTS-template.md; the human-readable docs are FLOOR-TOUR.html (how it
+works), PLANNING-DAY.html (planning questions), PLAYBOOK.html (reference). All
+board writes go through `swb` verbs — see the crib sheet in AGENTS-template.md.
