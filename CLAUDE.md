@@ -80,7 +80,7 @@ signs in — the ONE step you cannot do for them. It happens in the fresh sessio
 of Step 4, so fold it into that hand-off:
 
 > "You're set up. Two things left, and the first is a one-time sign-in to the
-> accounting system. Close me, open the switchboard-accounting folder again and
+> accounting system. Close me, open the AI-Hackathon folder again and
 > start me fresh. Then type `/mcp`, pick `business-central-bis-inc`, choose
 > Authenticate, and sign in with your BIS Microsoft account in the page that
 > opens. Do the same for `business-central-alberta` and
@@ -93,7 +93,7 @@ the exact error text." Tokens are per person, on their machine only.
 
 **Step 4 — Hand off to the tour.**
 Hooks, the tour command, and the servers load at session start — hence the
-fresh session, started FROM INSIDE this switchboard-accounting folder (board
+fresh session, started FROM INSIDE this AI-Hackathon folder (board
 updates are scoped to swb folders; starting here guarantees they see
 everything). After the sign-in:
 
@@ -104,7 +104,8 @@ everything). After the sign-in:
 **Step 5 — After the tour** (one sentence now, they do it later):
 
 > "After the tour, read PLANNING-DAY on your own — those are the questions
-> your team decides together on planning day."
+> your team decides together on planning day. SKILL-TEMPLATE.md is for later,
+> in your process walkthrough — leave it until then."
 
 ## Rules for you
 

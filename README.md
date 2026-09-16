@@ -8,7 +8,7 @@
    you join).
 2. **Run one line** (your Desktop is fine):
    ```sh
-   git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git && cd switchboard-accounting && node install.js
+   git clone https://github.com/BIS-Accounting/AI-Hackathon.git && cd AI-Hackathon && node install.js
    ```
    The Floor Tour opens in your browser — read it while the installer works. It will
    ask for your personal Linear API key and shows you exactly where to get one, and
@@ -22,6 +22,9 @@
 4. **Then, and only then, read [PLANNING-DAY.html](./PLANNING-DAY.html)** — the
    questions your team answers on planning day. Read individually; decide as a team
    ON planning day, not before.
+5. **Separate from the tour: [SKILL-TEMPLATE.md](./SKILL-TEMPLATE.md)** — the fill-in
+   template for turning one accounting process into a Claude skill (used in the
+   use-case walkthroughs, not during setup). Don't fill it in until your walkthrough.
 
 Don't read around this repo first — steps 2 and 3 open everything you need, in order.
 
@@ -49,7 +52,7 @@ without anyone opening Linear.
 Node ≥ 18. Zero npm dependencies. Cross-platform (macOS / Linux / Windows).
 
 ```sh
-git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git && cd switchboard-accounting && node install.js
+git clone https://github.com/BIS-Accounting/AI-Hackathon.git && cd AI-Hackathon && node install.js
 ```
 
 The installer verifies Node, creates `~/.switchboard/`, saves your
@@ -78,6 +81,7 @@ uninstall steps are in **[INSTALL.md](./INSTALL.md)**.
 swb.js                  # the entire CLI — one file, zero deps
 hooks/                  # userpromptsubmit · posttooluse · pretooluse
 install.js  INSTALL.md  # installer + install/uninstall docs
+SKILL-TEMPLATE.md       # fill-in template: one accounting process → one Claude skill (separate from the tour)
 mcp/                    # business-central.json — the 3 Business Central MCP servers the installer registers
 PLAYBOOK.html           # the participant playbook (rules, roles, walkthrough)
 AGENTS-template.md      # drop-in AGENTS.md protocol for team repos
@@ -113,4 +117,4 @@ done until the work is actually saved to GitHub.
 ---
 
 Private project — managed via the `bis-new` dual-repo setup.
-Canonical: `BIS-Safety-Software-Inc/switchboard-accounting` · mirror: `TurniSaha/switchboard-accounting` (auto-synced on push).
+Accounting team pulls from: `BIS-Accounting/AI-Hackathon` · development canonical: `BIS-Safety-Software-Inc/switchboard-accounting` · mirror: `TurniSaha/switchboard-accounting` (auto-synced on push).

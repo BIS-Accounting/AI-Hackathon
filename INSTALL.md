@@ -19,13 +19,13 @@ node --version   # must print v18.x or higher
 ### macOS / Linux
 
 ```sh
-git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git && cd switchboard-accounting && node install.js
+git clone https://github.com/BIS-Accounting/AI-Hackathon.git && cd AI-Hackathon && node install.js
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/BIS-Safety-Software-Inc/switchboard-accounting.git; cd switchboard-accounting; node install.js
+git clone https://github.com/BIS-Accounting/AI-Hackathon.git; cd AI-Hackathon; node install.js
 ```
 
 ### Before you start — two things you need
